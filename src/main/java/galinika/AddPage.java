@@ -56,6 +56,7 @@ public class AddPage {
         };
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLayout(null);
+        frame.setResizable(false);
         frame.getContentPane().setBackground(Color.WHITE);
         frame.setJMenuBar(menu.createMenu(frame));
 

@@ -37,6 +37,7 @@ public class GalenicTypesLibrary {
 	//float minimumCost, float costIncrement
     public GalenicTypesLibrary() {
         frame.setSize(700, 500); // new size
+        frame.setResizable(false);
         frame.setTitle("Βιβλιοθήκη Τύπων Γαληνικού");
         ImageIcon appIcon = new ImageIcon(getClass().getResource("/galinos.png"));
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

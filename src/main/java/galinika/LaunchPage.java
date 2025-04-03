@@ -53,6 +53,7 @@ public class LaunchPage {
             System.err.println("Icon not found!");
         }
         frame.setResizable(false);
+        frame.setTitle("Galinika");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(null);
         frame.getContentPane().setBackground(Color.WHITE);

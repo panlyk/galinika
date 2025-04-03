@@ -5,6 +5,11 @@ import java.awt.Font;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +30,7 @@ public class SubstanceLibrary {
 
     public SubstanceLibrary() {
         frame.setSize(400, 400);
+        frame.setResizable(false);
         frame.setTitle("Βιβλιοθήκη Συστατικών");
         URL iconUrl = getClass().getResource("/galinos.png");
         if (iconUrl != null) {
@@ -160,6 +166,29 @@ public class SubstanceLibrary {
         }
 
         return externalCsv;
+    }
+    
+	
+    	
+    public static List<Substance> loadFromDatabase() {
+        List<Substance> substances = new ArrayList<>();
+        String dbPath = System.getenv("APPDATA") + "/Galinika/galinika.db";
+
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT name, price FROM substances")) {
+
+            while (rs.next()) {
+                String name = rs.getString("name");
+                float price = rs.getFloat("price");
+                substances.add(new Substance(name, price));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return substances;
     }
 
 }
