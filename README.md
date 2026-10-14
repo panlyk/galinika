@@ -7,10 +7,15 @@ point is `Main.java`. Default libraries and the icon are in `src/main/resources`
 
 ## Downloaded release
 
-Install Java 21 or later and run the release JAR:
+On Windows, download **Galinika-0.1.5.exe** and run it to upgrade the original
+0.1.3 installation. Close Galinika first. The installer includes Java, retains
+the original machine-wide installer identity, and preserves libraries in
+`%APPDATA%/Galinika`. Back up that data folder before upgrading.
+
+For other systems, install Java 21 or later and run the release JAR:
 
 ```sh
-java -jar galinika-0.1.4.jar
+java -jar galinika-0.1.5.jar
 ```
 
 The JAR includes its dependencies. A graphical desktop is required.
@@ -70,3 +75,13 @@ then reopen the application.
 
 Build output belongs in `target/` and should not be committed. The app uses CSV
 storage; the old unused SQLite code/dependency has been removed.
+
+## Windows installer builds
+
+The Release workflow builds an EXE on Windows, verifies a real upgrade from the
+original 0.1.3 installer, checks saved CSV files are unchanged, and exercises the
+installed app. Publishing depends on this check passing. For a manual Windows
+build, install a Java 21 JDK, Maven, and WiX 3, run `mvn clean package`, then
+`./packaging/Build-WindowsInstaller.ps1` in PowerShell. Do not run the upgrade test
+on your own PC; it installs/uninstalls products and creates test library files.
+The upgrade UUID in that script must remain unchanged in future versions.

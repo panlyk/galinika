@@ -1,4 +1,4 @@
-Galinika 0.1.4 fixes input validation and improves pricing and saved-library reliability.
+Galinika 0.1.5 fixes input validation and improves pricing and saved-library reliability.
 
 - Reject invalid, negative, zero, NaN, and infinite quantities; show useful errors.
 - Validate library rows before saving and use atomic UTF-8 CSV replacement.
@@ -10,12 +10,19 @@ Galinika 0.1.4 fixes input validation and improves pricing and saved-library rel
 - Repair a damaged character in the bundled ingredient CSV.
 - Add 17 automated tests and Eclipse/Maven setup documentation.
 
-## Run
+## Windows upgrade
 
-Install Java 21 or later, download `galinika-0.1.4.jar`, and run:
+Download **Galinika-0.1.5.exe**, close Galinika, and run the installer. It includes
+Java and upgrades the original 0.1.3 machine-wide installation using the same
+Windows Installer upgrade ID. Back up `%APPDATA%/Galinika` first; saved libraries
+are preserved. The release pipeline verifies this upgrade before publishing.
+
+## Run the JAR on other systems
+
+Install Java 21 or later, download `galinika-0.1.5.jar`, and run:
 
 ```sh
-java -jar galinika-0.1.4.jar
+java -jar galinika-0.1.5.jar
 ```
 
 A graphical desktop is required. Dependencies are included in the JAR.
