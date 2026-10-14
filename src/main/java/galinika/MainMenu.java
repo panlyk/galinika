@@ -1,39 +1,26 @@
 package galinika;
 
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-
-
+import javax.swing.*;
 
 public class MainMenu {
-	SubstanceLibrary substanceLibrary;
-	GalenicTypesLibrary typesLibrary;
-	public JMenuBar createMenu(JFrame frame) {
-		
-		JMenuBar menuBar = new JMenuBar();
-		
-		JMenu fileMenu = new JMenu("Αρχείο");
-		JMenuItem exitItem = new JMenuItem("Εξοδος");
-		exitItem.addActionListener(e-> System.exit(0));
-		
-		JMenu infoMenu = new JMenu("Βιβλιοθήκη");
-		JMenuItem updateSubstances = new JMenuItem("Επεξεργασία Συστατικών");
-		updateSubstances.addActionListener(e-> substanceLibrary = new SubstanceLibrary());
-		JMenuItem updateGalenicTypes = new JMenuItem("Επεξεργασία Τύπων Γαληνικού");
-		updateGalenicTypes.addActionListener(e-> typesLibrary = new GalenicTypesLibrary());
-		
-		
-		fileMenu.add(exitItem);
-		infoMenu.add(updateSubstances);
-		infoMenu.add(updateGalenicTypes);
-		
-		menuBar.add(fileMenu);
-		menuBar.add(infoMenu);
-		
-		return menuBar;
-		
-	}
-
+  public JMenuBar createMenu(LaunchPage page) {
+    JMenuBar bar = new JMenuBar();
+    JMenu file = new JMenu("Αρχείο"), library = new JMenu("Βιβλιοθήκη");
+    JMenuItem exit = new JMenuItem("Έξοδος"),
+        substances = new JMenuItem("Επεξεργασία Συστατικών"),
+        types = new JMenuItem("Επεξεργασία Τύπων Γαληνικού");
+    exit.addActionListener(
+        e ->
+            page.frame.dispatchEvent(
+                new java.awt.event.WindowEvent(
+                    page.frame, java.awt.event.WindowEvent.WINDOW_CLOSING)));
+    substances.addActionListener(e -> new SubstanceLibrary(page::invalidateTotal));
+    types.addActionListener(e -> new GalenicTypesLibrary(page::reloadTypes));
+    file.add(exit);
+    library.add(substances);
+    library.add(types);
+    bar.add(file);
+    bar.add(library);
+    return bar;
+  }
 }

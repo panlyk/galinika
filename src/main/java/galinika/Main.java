@@ -1,9 +1,9 @@
 package galinika;
 
+import javax.swing.SwingUtilities;
 
 public class Main {
-	public static void main(String[] args) {		
-		LaunchPage launchPage = new LaunchPage();
-
-	}
+  public static void main(String[] args) {
+    SwingUtilities.invokeLater(LaunchPage::new);
+  }
 }

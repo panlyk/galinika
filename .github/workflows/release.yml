@@ -1,0 +1,40 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag (for example v0.1.4)
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build and test with a virtual display
+        run: xvfb-run -a mvn -B clean verify
+      - name: Publish tested release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
+          test "$RELEASE_TAG" = "v$version"
+          artifact="galinika-$version.jar"
+          cp "target/$artifact" "$artifact"
+          sha256sum "$artifact" > "$artifact.sha256"
+          gh release create "$RELEASE_TAG" "$artifact" "$artifact.sha256" \
+            --verify-tag --title "Galinika $version" --notes-file RELEASE_NOTES.md

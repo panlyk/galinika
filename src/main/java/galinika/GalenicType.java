@@ -1,50 +1,33 @@
 package galinika;
 
-public class GalenicType {
-	private String galenicTypeName;
-	private float minimumQuantity;
-	private float divisionQuantity;
-	private float minimumCost;
-	private float costIncrement;
-	
-	public GalenicType (String galenicTypeName, float minimumQuantity, float divisionQuantity, 
-			float minimumCost, float costIncrement) {
-		this.galenicTypeName = galenicTypeName;
-		this.minimumQuantity = minimumQuantity;
-		this.divisionQuantity = divisionQuantity;
-		this.minimumCost = minimumCost;
-		this.costIncrement = costIncrement;
-	} 
-	
-	public float[] getgalenicTypeValues () {
-		return new float[] {minimumQuantity,divisionQuantity,minimumCost,costIncrement};
-	}
-	
-	public String getGalenicTypeName() {
-	    return galenicTypeName;
-	}
+import java.math.BigDecimal;
 
-	public float getMinimumQuantity() {
-	    return minimumQuantity;
-	}
+public record GalenicType(
+    String name,
+    BigDecimal minimumQuantity,
+    BigDecimal divisionQuantity,
+    BigDecimal minimumCost,
+    BigDecimal costIncrement) {
+  public GalenicType {
+    if (name == null
+        || name.isBlank()
+        || minimumQuantity == null
+        || divisionQuantity == null
+        || minimumCost == null
+        || costIncrement == null
+        || minimumQuantity.signum() < 0
+        || divisionQuantity.signum() <= 0
+        || minimumCost.signum() < 0
+        || costIncrement.signum() < 0)
+      throw new IllegalArgumentException("Μη έγκυρος τύπος γαληνικού.");
+  }
 
-	public float getDivisionQuantity() {
-	    return divisionQuantity;
-	}
+  public String getGalenicTypeName() {
+    return name;
+  }
 
-	public float getMinimumCost() {
-	    return minimumCost;
-	}
-
-	public float getCostIncrement() {
-	    return costIncrement;
-	}
-
-	
-	
-	@Override
-	public String toString() {
-	    return galenicTypeName;
-	}
-
+  @Override
+  public String toString() {
+    return name;
+  }
 }
