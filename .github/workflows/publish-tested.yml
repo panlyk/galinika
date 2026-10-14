@@ -1,0 +1,54 @@
+name: Publish approved installer
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful installer build approved for release
+        required: true
+        type: string
+      version:
+        description: Approved version
+        required: true
+        type: string
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: jar
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: release-assets
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: release-assets
+      - name: Verify approved files and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD_RUN: ${{ inputs.run_id }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BUILD_RUN" =~ ^[0-9]+$ ]]
+          [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$(gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN" --jq .conclusion)" = success
+          source=$(gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN" --jq .head_sha)
+          git diff --exit-code "$source" HEAD -- src pom.xml packaging
+          version=$(python3 -c 'import xml.etree.ElementTree as E; print(E.parse("pom.xml").getroot().find("{http://maven.apache.org/POM/4.0.0}version").text)')
+          test "$version" = "$RELEASE_VERSION"
+          (cd release-assets && sha256sum -c "galinika-$version.jar.sha256" && sha256sum -c "Galinika-$version.exe.sha256")
+          gh release create "v$version" release-assets/* --target "$GITHUB_SHA" \
+            --title "Galinika $version" --notes-file RELEASE_NOTES.md

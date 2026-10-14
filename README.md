@@ -5,7 +5,7 @@ A Java Swing desktop app for calculating galenic preparation costs. The original
 with Maven**, using **Java 21**. The source is in `src/main/java/galinika`; the entry
 point is `Main.java`. Default libraries and the icon are in `src/main/resources`.
 
-## Test installer (unpublished)
+## Downloaded release
 
 On Windows, download **Galinika-0.1.6.exe** and run it to upgrade the original
 0.1.3 installation. Close Galinika first. The installer includes Java, retains
@@ -93,5 +93,6 @@ The upgrade UUID in that script must remain unchanged in future versions.
 The interface uses the original fixed window sizes, colours, fonts, and positions.
 The Windows executable, shortcuts, and Swing windows use the Galinika portrait.
 The build workflow uploads test artifacts by default and publishes only when
-explicitly selected for a tagged release. Version 0.1.6 is a test installer, not
-a published release.
+explicitly selected for a tagged release. Version 0.1.6 was approved after testing.
+Publishing an approved build can reuse its verified artifacts with the
+Publish approved installer workflow; no installer rebuild is necessary.
