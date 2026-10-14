@@ -73,7 +73,13 @@ jobs:
         run: ./packaging/Build-WindowsInstaller.ps1
       - name: Verify upgrade from the original EXE installation
         shell: pwsh
-        run: ./packaging/Test-WindowsUpgrade.ps1
+        run: |
+          try { ./packaging/Test-WindowsUpgrade.ps1 }
+          catch {
+            $message = $_.Exception.Message.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Host "::error title=Windows upgrade failure::$message"
+            throw
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
