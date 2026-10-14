@@ -1,0 +1,41 @@
+name: Transfer unpublished test installer
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful installer build run
+        required: true
+        type: string
+      version:
+        description: Installer version
+        required: true
+        type: string
+permissions:
+  contents: write
+  actions: read
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: download
+      - name: Stage a private download (never publish)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BUILD_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          cd download
+          sha256sum -c "Galinika-$BUILD_VERSION.exe.sha256"
+          gh release create "test-download-$GITHUB_RUN_ID" \
+            "Galinika-$BUILD_VERSION.exe" "Galinika-$BUILD_VERSION.exe.sha256" \
+            --draft --target "$GITHUB_SHA" --title "Temporary unpublished test download" \
+            --notes "Private transfer of a tested installer. Delete this draft after retrieving the file; do not publish it."
