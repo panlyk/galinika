@@ -58,10 +58,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $wix = Get-ChildItem '${{ runner.tool_cache }}' -Filter candle.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (!$wix) {
-            $wix = Get-ChildItem 'C:\Program Files (x86)\WiX Toolset*\bin\candle.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
-          }
+          # Check the known WiX location; avoid recursively scanning the runner tool cache.
+          $wix = Get-ChildItem 'C:\Program Files (x86)\WiX Toolset*\bin\candle.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
           if (!$wix) {
             choco install wixtoolset --version=3.14.1 -y --no-progress
             if ($LASTEXITCODE -ne 0) { throw 'WiX installation failed' }
