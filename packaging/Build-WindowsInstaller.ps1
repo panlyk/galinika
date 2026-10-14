@@ -12,6 +12,7 @@ Copy-Item "target/$jar" $inputDirectory
 $upgradeId = '66995049-6C47-42FB-BCB6-FB78E5DBAFBC'
 $packageArguments = @('--type', 'exe', '--name', 'Galinika', '--app-version', $version,
     '--input', $inputDirectory, '--main-jar', $jar, '--main-class', 'galinika.Main',
+    '--jlink-options', '--strip-debug --no-man-pages --no-header-files',
     '--dest', 'release/windows', '--temp', 'target/jpackage', '--vendor', 'Unknown',
     '--install-dir', 'Galinika', '--win-upgrade-uuid', $upgradeId,
     '--win-menu', '--win-menu-group', 'Unknown', '--win-shortcut', '--verbose')
