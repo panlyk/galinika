@@ -23,7 +23,7 @@ public class LaunchPage {
         }
       };
   final JTable table = new JTable(tableModel);
-  final JLabel totalPriceJLabel = new JLabel("— €");
+  final JLabel totalPriceJLabel = new JLabel("-€");
   final JButton addButton = new JButton("Προσθήκη Συστατικού"),
       removeButton = new JButton("Διαγραφή"),
       calculateButton = new JButton("Υπολογισμός Συνόλου");
@@ -34,18 +34,25 @@ public class LaunchPage {
     var icon = getClass().getResource("/galinos.png");
     if (icon != null) frame.setIconImage(new ImageIcon(icon).getImage());
     frame.setJMenuBar(new MainMenu().createMenu(this));
-    JPanel content = new JPanel(new BorderLayout(10, 10));
-    content.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-    JPanel top = new JPanel(new GridLayout(0, 1, 5, 5));
-    top.add(new JLabel("Δημιουργία Γαληνικού"));
-    top.add(row("Τύπος Γαληνικού:", galenicTypeComboBox));
+    frame.setSize(375, 650);
+    frame.setResizable(false);
+    frame.setLayout(null);
+    frame.getContentPane().setBackground(Color.WHITE);
+    AppIcon.apply(frame);
+    Font labels = new Font("Segoe UI", Font.PLAIN, 14);
+    JLabel title = new JLabel("Δημιουργία Γαληνικού");
+    title.setFont(new Font("Segoe UI", Font.BOLD, 22));
+    place(title, 30, 20, 300, 30);
+    JLabel typeLabel = new JLabel("Τύπος Γαληνικού:");
+    typeLabel.setFont(labels);
+    place(typeLabel, 30, 70, 120, 25);
+    place(galenicTypeComboBox, 175, 70, 150, 25);
+    AppIcon.button(addButton, new Color(70, 130, 180));
     addButton.addActionListener(e -> new AddPage(this));
-    top.add(addButton);
-    content.add(top, BorderLayout.NORTH);
+    place(addButton, 30, 110, 180, 25);
     table.setAutoCreateRowSorter(true);
-    content.add(new JScrollPane(table), BorderLayout.CENTER);
-    JPanel bottom = new JPanel(new GridLayout(0, 1, 5, 5));
-    JPanel deletes = new JPanel();
+    place(new JScrollPane(table), 30, 150, 300, 140);
+    AppIcon.button(removeButton, new Color(220, 53, 69));
     removeButton.addActionListener(
         e -> {
           int row = table.getSelectedRow();
@@ -56,7 +63,9 @@ public class LaunchPage {
             invalidateTotal();
           }
         });
+    place(removeButton, 30, 300, 140, 25);
     JButton clear = new JButton("Διαγραφή Όλων");
+    AppIcon.button(clear, new Color(220, 53, 69));
     clear.addActionListener(
         e -> {
           if (!ingredients.isEmpty()
@@ -71,18 +80,26 @@ public class LaunchPage {
             invalidateTotal();
           }
         });
-    deletes.add(removeButton);
-    deletes.add(clear);
-    bottom.add(deletes);
-    JPanel quantity = row("Συνολική Ποσότητα:", galenicQuantityField);
-    quantity.add(galenicQuantityTypesBox);
-    bottom.add(quantity);
-    bottom.add(row("Άλλο κόστος (€):", restField));
+    place(clear, 190, 300, 140, 25);
+    JLabel quantityLabel = new JLabel("Συνολική Ποσότητα:");
+    quantityLabel.setFont(labels);
+    place(quantityLabel, 30, 350, 140, 25);
+    place(galenicQuantityField, 165, 350, 110, 25);
+    place(galenicQuantityTypesBox, 285, 350, 45, 25);
+    JLabel otherLabel = new JLabel("Άλλο κόστος (€):");
+    otherLabel.setFont(labels);
+    place(otherLabel, 30, 390, 150, 25);
+    place(restField, 165, 390, 110, 25);
+    AppIcon.button(calculateButton, new Color(40, 167, 69));
     calculateButton.addActionListener(e -> calculateTotal());
-    bottom.add(calculateButton);
-    bottom.add(totalPriceJLabel);
-    content.add(bottom, BorderLayout.SOUTH);
-    frame.setContentPane(content);
+    place(calculateButton, 30, 450, 180, 30);
+    totalPriceJLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    totalPriceJLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+    totalPriceJLabel.setForeground(new Color(0, 128, 0));
+    totalPriceJLabel.setOpaque(true);
+    totalPriceJLabel.setBackground(new Color(235, 255, 235));
+    totalPriceJLabel.setBorder(BorderFactory.createLineBorder(new Color(0, 128, 0), 1));
+    place(totalPriceJLabel, 30, 495, 100, 35);
     DocumentListener listener =
         new DocumentListener() {
           public void insertUpdate(DocumentEvent e) {
@@ -101,21 +118,17 @@ public class LaunchPage {
     restField.getDocument().addDocumentListener(listener);
     galenicTypeComboBox.addActionListener(e -> invalidateTotal());
     reloadTypes();
-    frame.setMinimumSize(new Dimension(450, 600));
-    frame.pack();
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
   }
 
-  static JPanel row(String label, JComponent field) {
-    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    p.add(new JLabel(label));
-    p.add(field);
-    return p;
+  private void place(JComponent component, int x, int y, int width, int height) {
+    component.setBounds(x, y, width, height);
+    frame.add(component);
   }
 
   void invalidateTotal() {
-    totalPriceJLabel.setText("— €");
+    totalPriceJLabel.setText("-€");
   }
 
   void reloadTypes() {

@@ -1,15 +1,22 @@
-name: Release
+name: Build installer
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
     inputs:
-      tag:
-        description: Existing release tag (for example v0.1.5)
+      source_ref:
+        description: Branch or tag to build
+        default: main
         required: true
         type: string
+      publish:
+        description: Publish a GitHub release (only after approving a tested installer)
+        default: false
+        required: true
+        type: boolean
 permissions:
-  contents: write
+  contents: read
+  actions: read
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ inputs.source_ref || github.ref }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -44,7 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ inputs.source_ref || github.ref }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -76,10 +83,25 @@ jobs:
       - name: Build Windows upgrade installer
         shell: pwsh
         run: ./release-tooling/packaging/Build-WindowsInstaller.ps1
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          run-id: 38575572916
+          github-token: ${{ github.token }}
+          path: target/previous-0.1.5
       - name: Verify upgrade from the original EXE installation
         shell: pwsh
         run: |
-          try { ./release-tooling/packaging/Test-WindowsUpgrade.ps1 }
+          try { ./release-tooling/packaging/Test-WindowsUpgrade.ps1 -Cleanup }
+          catch {
+            $message = $_.Exception.Message.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Host "::error title=Windows upgrade failure::$message"
+            throw
+          }
+      - name: Verify upgrade from 0.1.5
+        shell: pwsh
+        run: |
+          try { ./release-tooling/packaging/Test-WindowsUpgrade.ps1 -PreviousInstaller 'target/previous-0.1.5/Galinika-0.1.5.exe' -PreviousVersion '0.1.5' -Cleanup }
           catch {
             $message = $_.Exception.Message.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
             Write-Host "::error title=Windows upgrade failure::$message"
@@ -97,13 +119,16 @@ jobs:
             target/jpackage
             target/upgrade-test/*.log
   publish:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
+    permissions:
+      contents: write
     needs: [build, windows]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ inputs.source_ref || github.ref }}
       - uses: actions/download-artifact@v4
         with:
           path: release-assets
@@ -111,7 +136,7 @@ jobs:
       - name: Publish tested release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+          RELEASE_TAG: ${{ inputs.source_ref || github.ref_name }}
         shell: bash
         run: |
           set -euo pipefail

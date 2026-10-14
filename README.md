@@ -5,9 +5,9 @@ A Java Swing desktop app for calculating galenic preparation costs. The original
 with Maven**, using **Java 21**. The source is in `src/main/java/galinika`; the entry
 point is `Main.java`. Default libraries and the icon are in `src/main/resources`.
 
-## Downloaded release
+## Test installer (unpublished)
 
-On Windows, download **Galinika-0.1.5.exe** and run it to upgrade the original
+On Windows, download **Galinika-0.1.6.exe** and run it to upgrade the original
 0.1.3 installation. Close Galinika first. The installer includes Java, retains
 the original machine-wide installer identity, and preserves libraries in
 `%APPDATA%/Galinika`. Back up that data folder before upgrading.
@@ -15,7 +15,7 @@ the original machine-wide installer identity, and preserves libraries in
 For other systems, install Java 21 or later and run the release JAR:
 
 ```sh
-java -jar galinika-0.1.5.jar
+java -jar galinika-0.1.6.jar
 ```
 
 The JAR includes its dependencies. A graphical desktop is required.
@@ -30,8 +30,8 @@ mvn verify
 mvn exec:java
 ```
 
-For all 17 tests on headless Linux, run `xvfb-run -a mvn verify`. Without a
-display, the 16 calculation/storage tests run and the desktop test is skipped.
+For all 19 tests on headless Linux, run `xvfb-run -a mvn verify`. Without a
+display, the 18 calculation/storage tests run and the desktop test is skipped.
 
 In Eclipse: File → Import → Maven → Existing Maven Projects, select this directory,
 configure a Java 21 JDK, and run `galinika.Main` as a Java Application. Other Java
@@ -44,7 +44,11 @@ On first use, the app copies bundled CSV defaults to `%APPDATA%/Galinika` on
 Windows, or `~/.galinika` elsewhere. Existing data is preserved. Override the data
 directory with `-Dgalinika.dataDir=/your/directory` (for example through
 `MAVEN_OPTS` when running Maven). Back up that directory before editing libraries.
-Names may include commas and quotes; files use UTF-8 CSV.
+Names may include commas and quotes; files use UTF-8 CSV. On reading an old
+ingredient file, the known damaged UTF-8 name from the 0.1.3 defaults is repaired
+without replacing custom rows or prices. The exact original file is backed up
+beside it as `substances.csv.before-encoding-repair-*.bak`. Unknown encoding
+problems produce a useful error and leave the file untouched.
 
 Quantities must be positive. Prices, minimum quantities, and other costs must be
 nonnegative; quantity increments must be positive. Blank other cost means zero.
@@ -85,3 +89,9 @@ build, install a Java 21 JDK, Maven, and WiX 3, run `mvn clean package`, then
 `./packaging/Build-WindowsInstaller.ps1` in PowerShell. Do not run the upgrade test
 on your own PC; it installs/uninstalls products and creates test library files.
 The upgrade UUID in that script must remain unchanged in future versions.
+
+The interface uses the original fixed window sizes, colours, fonts, and positions.
+The Windows executable, shortcuts, and Swing windows use the Galinika portrait.
+The build workflow uploads test artifacts by default and publishes only when
+explicitly selected for a tagged release. Version 0.1.6 is a test installer, not
+a published release.

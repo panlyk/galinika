@@ -28,12 +28,24 @@ class LibraryEditor {
     }
     frame.setTitle(title);
     frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    AppIcon.apply(frame);
+    frame.setResizable(false);
+    frame.setLayout(null);
+    frame.getContentPane().setBackground(Color.WHITE);
     table.setAutoCreateRowSorter(true);
-    frame.add(new JScrollPane(table), BorderLayout.CENTER);
-    JPanel buttons = new JPanel();
+    table.setRowHeight(25);
+    table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+    boolean types = columns.length == 5;
+    JScrollPane scroll = new JScrollPane(table);
+    scroll.setFocusable(false);
+    scroll.setBounds(20, 20, types ? 640 : 340, types ? 360 : 250);
+    frame.add(scroll);
     JButton add = new JButton("Προσθήκη"),
         delete = new JButton("Διαγραφή"),
         save = new JButton("Αποθήκευση");
+    AppIcon.button(add, new Color(70, 130, 180));
+    AppIcon.button(delete, new Color(220, 53, 69));
+    AppIcon.button(save, new Color(40, 167, 69));
     add.addActionListener(
         e -> {
           Object[] row = new Object[columns.length];
@@ -65,11 +77,19 @@ class LibraryEditor {
                 frame, ex.getMessage(), "Σφάλμα αποθήκευσης", JOptionPane.ERROR_MESSAGE);
           }
         });
-    buttons.add(add);
-    buttons.add(delete);
-    buttons.add(save);
-    frame.add(buttons, BorderLayout.SOUTH);
-    frame.setSize(columns.length == 5 ? 750 : 450, 450);
+    if (types) {
+      add.setBounds(60, 400, 140, 35);
+      delete.setBounds(280, 400, 140, 35);
+      save.setBounds(500, 400, 140, 35);
+    } else {
+      add.setBounds(60, 285, 120, 30);
+      delete.setBounds(200, 285, 120, 30);
+      save.setBounds(120, 325, 140, 30);
+    }
+    frame.add(add);
+    frame.add(delete);
+    frame.add(save);
+    frame.setSize(types ? 700 : 400, types ? 500 : 400);
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
   }

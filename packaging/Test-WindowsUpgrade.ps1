@@ -1,15 +1,25 @@
+param(
+    [string]$PreviousInstaller = '',
+    [string]$PreviousVersion = '0.1.3',
+    [switch]$Cleanup
+)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $version = ([xml](Get-Content 'pom.xml')).project.version
-$oldProduct = '{2742FFED-B5D1-3928-AC03-8B73281DF99F}'
 $upgradeId = '{66995049-6C47-42FB-BCB6-FB78E5DBAFBC}'
 $uninstall = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'
 New-Item -ItemType Directory -Force 'target/upgrade-test' | Out-Null
 
 # Test on an isolated Windows runner, never on a developer's installed application.
-Invoke-WebRequest 'https://github.com/panlyk/galinika/releases/download/v0.1.3/Galinika-0.1.3.exe' -OutFile 'target/upgrade-test/old.exe'
-if ((Get-FileHash 'target/upgrade-test/old.exe' -Algorithm SHA256).Hash -ne 'B7506640FB9C0BF06CFE14FF0BDB7E79AB9B345C4E124B6BE8F35529017765B2') {
-    throw 'Original installer checksum mismatch'
+if ($PreviousInstaller) {
+    Copy-Item $PreviousInstaller 'target/upgrade-test/old.exe' -Force
+    $expected = (Get-Content "$PreviousInstaller.sha256").Split(' ')[0]
+} else {
+    Invoke-WebRequest 'https://github.com/panlyk/galinika/releases/download/v0.1.3/Galinika-0.1.3.exe' -OutFile 'target/upgrade-test/old.exe'
+    $expected = 'B7506640FB9C0BF06CFE14FF0BDB7E79AB9B345C4E124B6BE8F35529017765B2'
+}
+if ((Get-FileHash 'target/upgrade-test/old.exe' -Algorithm SHA256).Hash -ne $expected) {
+    throw 'Previous installer checksum mismatch'
 }
 # jpackage embeds an OLE/MSI resource in its EXE wrapper. Extract it for silent setup.
 $bytes = [IO.File]::ReadAllBytes((Join-Path $PWD 'target/upgrade-test/old.exe'))
@@ -40,6 +50,8 @@ function Read-MsiProperty($msi, $property) {
     [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($installer)
     return $value
 }
+$oldProduct = Read-MsiProperty $oldMsi 'ProductCode'
+if ((Read-MsiProperty $oldMsi 'ProductVersion') -ne $PreviousVersion) { throw 'Incorrect previous installer' }
 $newMsi = @(Get-ChildItem 'target/jpackage' -Filter '*.msi' -Recurse)[0].FullName
 $oldUpgrade = Read-MsiProperty $oldMsi 'UpgradeCode'
 $newUpgrade = Read-MsiProperty $newMsi 'UpgradeCode'
@@ -79,4 +91,9 @@ if (!(Test-Path $installedJar)) { throw 'Upgraded application JAR missing' }
 # Exercise the installed JAR using the installed Java runtime, not the runner JDK.
 & "$app/runtime/bin/java.exe" -cp "$installedJar;$PWD/target/test-classes" galinika.UiSmokeTest
 if ($LASTEXITCODE -ne 0) { throw 'Installed application smoke test failed' }
-Write-Host "PASS: 0.1.3 -> $version upgrade, one product, saved libraries preserved, installed UI works"
+Write-Host "PASS: $PreviousVersion -> $version upgrade, one product, saved libraries preserved, installed UI works"
+if ($Cleanup) {
+    $product = $installed[0].PSChildName
+    $p = Start-Process msiexec.exe -ArgumentList "/x $product /qn /norestart" -Wait -PassThru
+    if ($p.ExitCode -notin @(0,3010)) { throw "Test cleanup failed: $($p.ExitCode)" }
+}
