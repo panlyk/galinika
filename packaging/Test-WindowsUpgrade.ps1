@@ -30,10 +30,10 @@ function Read-MsiProperty($msi, $property) {
     $installer = New-Object -ComObject WindowsInstaller.Installer
     $database = $installer.OpenDatabase((Resolve-Path $msi).Path, 0)
     $view = $database.OpenView("SELECT ``Value`` FROM ``Property`` WHERE ``Property``='$property'")
-    $view.Execute(); $record = $view.Fetch()
+    [void]$view.Execute(); $record = $view.Fetch()
     if ($null -eq $record) { throw "Missing MSI property $property" }
     $value = $record.StringData(1)
-    $view.Close()
+    [void]$view.Close()
     [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($record)
     [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($view)
     [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($database)
@@ -41,7 +41,12 @@ function Read-MsiProperty($msi, $property) {
     return $value
 }
 $newMsi = @(Get-ChildItem 'target/jpackage' -Filter '*.msi' -Recurse)[0].FullName
-if ((Read-MsiProperty $newMsi 'UpgradeCode') -ne $upgradeId) { throw 'Upgrade identity changed' }
+$oldUpgrade = Read-MsiProperty $oldMsi 'UpgradeCode'
+$newUpgrade = Read-MsiProperty $newMsi 'UpgradeCode'
+Write-Host "::notice title=Installer identity::Original=$oldUpgrade New=$newUpgrade Expected=$upgradeId"
+if ([guid]$oldUpgrade -ne [guid]$upgradeId -or [guid]$newUpgrade -ne [guid]$upgradeId) {
+    throw "Upgrade identity changed: original=$oldUpgrade new=$newUpgrade expected=$upgradeId"
+}
 if ((Read-MsiProperty $newMsi 'ProductVersion') -ne $version) { throw 'Incorrect version' }
 if ((Read-MsiProperty $newMsi 'ALLUSERS') -ne '1') { throw 'Installer must retain machine-wide scope' }
 

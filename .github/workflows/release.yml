@@ -68,13 +68,18 @@ jobs:
           $wix.DirectoryName >> $env:GITHUB_PATH
           mvn -B test-compile
           if ($LASTEXITCODE -ne 0) { throw 'Test compilation failed' }
+      - name: Checkout current installer verification tools
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: release-tooling
       - name: Build Windows upgrade installer
         shell: pwsh
-        run: ./packaging/Build-WindowsInstaller.ps1
+        run: ./release-tooling/packaging/Build-WindowsInstaller.ps1
       - name: Verify upgrade from the original EXE installation
         shell: pwsh
         run: |
-          try { ./packaging/Test-WindowsUpgrade.ps1 }
+          try { ./release-tooling/packaging/Test-WindowsUpgrade.ps1 }
           catch {
             $message = $_.Exception.Message.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
             Write-Host "::error title=Windows upgrade failure::$message"
